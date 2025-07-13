@@ -1,12 +1,14 @@
 # train/train_vad.py
-
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import Adam
-from models.vad_crnn_model import VAD_CRNN
-from utils.dataset_loader import VADDataset
+from models.vad_crnn import VADCRNN
+from utils.datasetloader import VADDataset
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 
@@ -28,7 +30,7 @@ train_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 # -------------------------------
 # Model, Loss, Optimizer
 # -------------------------------
-model = VAD_CRNN().to(DEVICE)
+model = VADCRNN().to(DEVICE)
 criterion = nn.BCELoss()
 optimizer = Adam(model.parameters(), lr=LR)
 
@@ -41,8 +43,9 @@ for epoch in range(EPOCHS):
     all_preds, all_labels = [], []
 
     for features, labels in tqdm(train_loader, desc=f"Epoch {epoch+1}/{EPOCHS}"):
-        features = features.unsqueeze(1).to(DEVICE)  # [B, 1, 64, 32]
-        labels = labels.float().unsqueeze(1).to(DEVICE)  # [B, 1]
+        features = features.to(DEVICE)  # [B, 1, 64, T]
+        labels = labels.float().to(DEVICE)           # [B]
+
 
         outputs = model(features)
         loss = criterion(outputs, labels)

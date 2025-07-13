@@ -1,27 +1,40 @@
-# models/command_asr.py
 import torch
 import torch.nn as nn
 
-class CommandASRModel(nn.Module):
-    def __init__(self, n_mels=64, hidden_dim=128, vocab_size=100):
-        super(CommandASRModel, self).__init__()
+class ASRModel(nn.Module):
+    def __init__(self, n_mels=64, hidden_size=128, vocab_size=30):
+        super(ASRModel, self).__init__()
+
+        self.n_mels = n_mels
+
         self.cnn = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=3, padding=1),
+            nn.Conv2d(1, 32, kernel_size=3, padding=1),  # keep input shape
+            nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.MaxPool2d((2, 2)),
+            nn.MaxPool2d((2, 1))  # ↓ reduce time dimension by 2 (T → T//2)
         )
 
-        self.rnn = nn.GRU(input_size=32 * 32, hidden_size=hidden_dim,
-                          num_layers=2, batch_first=True, bidirectional=True)
+        # Final CNN output shape: [B, 32, 64, T//2]
+        self.gru_input_size = 16 * n_mels  # = 2048 if n_mels = 64
 
-        self.classifier = nn.Sequential(
-            nn.Linear(hidden_dim * 2, vocab_size)
+        self.gru = nn.GRU(
+            input_size=self.gru_input_size,
+            hidden_size=hidden_size,
+            num_layers=1,
+            batch_first=True,
+            bidirectional=True
         )
 
-    def forward(self, x):  # x: [B, 64, T]
-        x = x.unsqueeze(1)         # [B, 1, 64, T]
-        x = self.cnn(x)            # [B, 32, 32, T//2]
-        x = x.permute(0, 3, 1, 2)  # [B, T//2, 32, 32]
-        x = x.reshape(x.size(0), x.size(1), -1)  # [B, T//2, 32*32]
-        output, _ = self.rnn(x)
-        return self.classifier(output[:, -1, :])  # Only last timestep output
+        self.classifier = nn.Linear(hidden_size * 2, vocab_size)
+
+    def forward(self, x):  # x: [B, 1, 64, T]
+        x = self.cnn(x)  # → [B, 32, 64, T//2]
+        x = x.permute(0, 3, 1, 2)  # → [B, T//2, 32, 64]
+        x = x.reshape(x.size(0), x.size(1), -1)  # → [B, T//2, 2048]
+        x, _ = self.gru(x)  # → [B, T//2, 256 * 2]
+        x = self.classifier(x)  # → [B, T//2, vocab_size]
+        return x.log_softmax(2)  # for CTC loss
+
+    def get_output_lengths(self, input_lengths):
+        # Only time is downsampled (T → T//2)
+        return input_lengths 
