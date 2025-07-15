@@ -26,12 +26,11 @@ NOISE_DIR = os.path.join(BASE_DATA_DIR, "noise")
 LABEL_COMMAND = os.path.join(BASE_DATA_DIR, "label", "command_labels.json")
 
 FEATURES_DIR = os.path.join(BASE_DATA_DIR, "features")
-VAD_COMMAND_FEATURES = os.path.join(FEATURES_DIR, "vad", "command")
-VAD_TRIGGER_FEATURES = os.path.join(FEATURES_DIR, "vad", "trigger")
+VAD_WORD_FEATURES = os.path.join(FEATURES_DIR, "vad", "word")
 VAD_NOISE_FEATURES = os.path.join(FEATURES_DIR, "vad", "noise")
 
-TRIGGER_COMMAND_FEATURES = os.path.join(FEATURES_DIR, "trigger", "command")
-TRIGGER_TRIGGER_FEATURES = os.path.join(FEATURES_DIR, "trigger", "trigger")
+NONTRIGGER_FEATURES = os.path.join(FEATURES_DIR, "trigger", "nontrigger")
+TRIGGER_FEATURES = os.path.join(FEATURES_DIR, "trigger", "trigger")
 
 ASR_COMMAND_FEATURES = os.path.join(FEATURES_DIR, "asr")
 
@@ -85,14 +84,18 @@ def preprocess_all():
     print("🔄 Starting preprocessing...")
 
     # VAD
-    preprocess_directory(RAW_TRIGGER, os.path.join(VAD_TRIGGER_FEATURES, "raw"))
-    preprocess_directory(AUG_TRIGGER, os.path.join(VAD_TRIGGER_FEATURES, "augmented"))
+    preprocess_directory(RAW_TRIGGER, os.path.join(VAD_WORD_FEATURES))
+    preprocess_directory(AUG_TRIGGER, os.path.join(VAD_WORD_FEATURES))
+    preprocess_directory(RAW_COMMAND, os.path.join(VAD_WORD_FEATURES))
+    preprocess_directory(AUG_COMMAND, os.path.join(VAD_WORD_FEATURES))    
     preprocess_directory(NOISE_DIR, VAD_NOISE_FEATURES)
 
     # Trigger
-    preprocess_directory(RAW_TRIGGER, os.path.join(TRIGGER_TRIGGER_FEATURES, "raw"))
-    preprocess_directory(AUG_TRIGGER, os.path.join(TRIGGER_TRIGGER_FEATURES, "augmented"))
-
+    preprocess_directory(RAW_TRIGGER, os.path.join(TRIGGER_FEATURES))
+    preprocess_directory(AUG_TRIGGER, os.path.join(TRIGGER_FEATURES))
+    preprocess_directory(RAW_COMMAND, os.path.join(NONTRIGGER_FEATURES))
+    preprocess_directory(AUG_COMMAND, os.path.join(NONTRIGGER_FEATURES)) 
+    preprocess_directory(NOISE_DIR, os.path.join(NONTRIGGER_FEATURES))   
     # ASR
     extract_asr_features(RAW_COMMAND, LABEL_COMMAND, os.path.join(ASR_COMMAND_FEATURES, "raw"))
     extract_asr_features(AUG_COMMAND, LABEL_COMMAND, os.path.join(ASR_COMMAND_FEATURES, "augmented"))

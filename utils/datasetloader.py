@@ -9,8 +9,7 @@ from torch.utils.data import Dataset
 BASE_FEATURE_DIR = "data/features"
 
 # VAD
-VAD_TRIGGER_RAW = os.path.join(BASE_FEATURE_DIR, "vad", "trigger", "raw")
-VAD_TRIGGER_AUG = os.path.join(BASE_FEATURE_DIR, "vad", "trigger", "augmented")
+VAD_WORD = os.path.join(BASE_FEATURE_DIR, "vad", "word")
 VAD_NOISE = os.path.join(BASE_FEATURE_DIR, "vad", "noise")
 
 # Trigger
@@ -32,7 +31,7 @@ class VADDataset(Dataset):
         self.data = []
 
         # Speech = trigger (positive class)
-        for path in [VAD_TRIGGER_RAW, VAD_TRIGGER_AUG]:
+        for path in [VAD_WORD]:
             for file in os.listdir(path):
                 if file.endswith(".npy"):
                     self.data.append((os.path.join(path, file), 1))
@@ -60,15 +59,24 @@ class TriggerDataset(Dataset):
 
         # Positive: Trigger audio
         for path in [TRIGGER_TRIGGER_RAW, TRIGGER_TRIGGER_AUG]:
-            for file in os.listdir(path):
-                if file.endswith(".npy"):
-                    self.data.append((os.path.join(path, file), 1))
+            if os.path.exists(path):
+                for file in os.listdir(path):
+                    if file.endswith(".npy"):
+                        self.data.append((os.path.join(path, file), 1))
 
         # Negative: Command audio (non-trigger)
         for path in [TRIGGER_COMMAND_RAW, TRIGGER_COMMAND_AUG]:
-            for file in os.listdir(path):
+            if os.path.exists(path):
+                for file in os.listdir(path):
+                    if file.endswith(".npy"):
+                        self.data.append((os.path.join(path, file), 0))
+
+        # Negative: Noise (new addition)
+        noise_path = os.path.join(BASE_FEATURE_DIR, "vad", "noise")
+        if os.path.exists(noise_path):
+            for file in os.listdir(noise_path):
                 if file.endswith(".npy"):
-                    self.data.append((os.path.join(path, file), 0))
+                    self.data.append((os.path.join(noise_path, file), 0))
 
     def __len__(self):
         return len(self.data)
@@ -77,8 +85,6 @@ class TriggerDataset(Dataset):
         feature_path, label = self.data[idx]
         features = np.load(feature_path)
         return features.astype(np.float32), label
-
-
 # ----------------------------------
 # Automatic Speech Recognition Dataset
 # ----------------------------------

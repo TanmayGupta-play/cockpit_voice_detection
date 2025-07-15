@@ -18,13 +18,15 @@ VAD_DURATION = 2     # seconds for VAD + Trigger detection
 ASR_DURATION = 5     # seconds for command capture
 CHANNELS = 1
 
+VAD_THRESHOLD = 0.6       # tune this
+TRIGGER_THRESHOLD = 0.5   # tune this
+
 def record_audio(duration, filename=None):
     print(f"🎙️ Recording for {duration} seconds...")
     audio = sd.rec(int(SAMPLE_RATE * duration), samplerate=SAMPLE_RATE, channels=CHANNELS, dtype='float32')
     sd.wait()
 
     if filename:
-        # Save as WAV file
         audio_int16 = np.int16(audio * 32767)
         with wave.open(filename, 'w') as wf:
             wf.setnchannels(CHANNELS)
@@ -38,33 +40,35 @@ def record_audio(duration, filename=None):
 def main():
     print("🎧 Listening for trigger word... (Ctrl+C to stop)\n")
     while True:
-        # 1. Record 2s for VAD + trigger
+        # Step 1: Record 2s audio for VAD + Trigger
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
             vad_path = tmpfile.name
         record_audio(VAD_DURATION, filename=vad_path)
 
-        # 2. VAD
-        speech_detected, conf = is_speech(vad_path)
-        if not speech_detected:
-            print("🔇 No speech detected.")
+        # Step 2: VAD → Check if any human voice exists
+        speech_detected, vad_conf = is_speech(vad_path)
+        if not speech_detected or vad_conf < VAD_THRESHOLD:
+            print(f"🔇 No speech detected. (Confidence: {vad_conf:.2f})")
+            continue
+        print(f"🗣️ Speech detected. (Confidence: {vad_conf:.2f})")
+
+        # Step 3: Trigger Word Detection
+        trigger_detected, trigger_conf = predict_trigger(vad_path)
+        if not trigger_detected or trigger_conf < TRIGGER_THRESHOLD:
+            print(f"❌ No trigger word detected. (Confidence: {trigger_conf:.2f})\n")
             continue
 
-        # 3. Trigger Word Detection
-        trigger_detected, trigger_conf = predict_trigger(vad_path)
-        if trigger_detected:
-            print(f"\n🚀 Trigger detected! (Confidence: {trigger_conf:.2f})")
-            print("🎤 Speak your command (5s)...")
+        print(f"\n🚀 Trigger detected! (Confidence: {trigger_conf:.2f})")
+        print("🎤 Speak your command (5s)...")
 
-            # 4. Record 5s for ASR
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as cmdfile:
-                asr_path = cmdfile.name
-            record_audio(ASR_DURATION, filename=asr_path)
+        # Step 4: Record 5s audio for ASR
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as cmdfile:
+            asr_path = cmdfile.name
+        record_audio(ASR_DURATION, filename=asr_path)
 
-            # 5. ASR Transcription
-            transcript = transcribe_audio(asr_path)
-            print(f"📝 Transcribed Command: {transcript}\n")
-        else:
-            print("❌ No trigger word detected.")
+        # Step 5: Transcribe
+        transcript = transcribe_audio(asr_path)
+        print(f"📝 Transcribed Command: {transcript}\n")
 
 if __name__ == "__main__":
     main()
