@@ -16,7 +16,7 @@ MAX_LENGTH = SAMPLE_RATE * AUDIO_DURATION
 # -----------------------------
 # Input & Output Paths
 # -----------------------------
-BASE_DATA_DIR = "C:/Users/Admin/Desktop/Cockpit_voice_detection/data"
+BASE_DATA_DIR = "data"
 
 RAW_COMMAND = os.path.join(BASE_DATA_DIR, "raw", "raw_command")
 RAW_TRIGGER = os.path.join(BASE_DATA_DIR, "raw", "raw_trigger")

@@ -27,7 +27,7 @@ model.eval()
 # -------------------------------
 # Prediction Function
 # -------------------------------
-def predict_trigger(audio_path, threshold=0.5):
+def predict_trigger(audio_path, threshold=0.):
     """
     Predict trigger word presence in a given audio.
 
