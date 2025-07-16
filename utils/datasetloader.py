@@ -13,10 +13,8 @@ VAD_WORD = os.path.join(BASE_FEATURE_DIR, "vad", "word")
 VAD_NOISE = os.path.join(BASE_FEATURE_DIR, "vad", "noise")
 
 # Trigger
-TRIGGER_TRIGGER_RAW = os.path.join(BASE_FEATURE_DIR, "trigger", "trigger", "raw")
-TRIGGER_TRIGGER_AUG = os.path.join(BASE_FEATURE_DIR, "trigger", "trigger", "augmented")
-TRIGGER_COMMAND_RAW = os.path.join(BASE_FEATURE_DIR, "trigger", "command", "raw")
-TRIGGER_COMMAND_AUG = os.path.join(BASE_FEATURE_DIR, "trigger", "command", "augmented")
+TRIGGER_TRIGGER = os.path.join(BASE_FEATURE_DIR, "trigger", "trigger")
+TRIGGER_NONTRIGGER = os.path.join(BASE_FEATURE_DIR, "trigger", "nontrigger")
 
 # ASR
 ASR_COMMAND_RAW = os.path.join(BASE_FEATURE_DIR, "asr", "raw")
@@ -58,25 +56,18 @@ class TriggerDataset(Dataset):
         self.data = []
 
         # Positive: Trigger audio
-        for path in [TRIGGER_TRIGGER_RAW, TRIGGER_TRIGGER_AUG]:
+        for path in [TRIGGER_TRIGGER]:
             if os.path.exists(path):
                 for file in os.listdir(path):
                     if file.endswith(".npy"):
                         self.data.append((os.path.join(path, file), 1))
 
         # Negative: Command audio (non-trigger)
-        for path in [TRIGGER_COMMAND_RAW, TRIGGER_COMMAND_AUG]:
+        for path in [TRIGGER_NONTRIGGER]:
             if os.path.exists(path):
                 for file in os.listdir(path):
                     if file.endswith(".npy"):
                         self.data.append((os.path.join(path, file), 0))
-
-        # Negative: Noise (new addition)
-        noise_path = os.path.join(BASE_FEATURE_DIR, "vad", "noise")
-        if os.path.exists(noise_path):
-            for file in os.listdir(noise_path):
-                if file.endswith(".npy"):
-                    self.data.append((os.path.join(noise_path, file), 0))
 
     def __len__(self):
         return len(self.data)
