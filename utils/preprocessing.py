@@ -93,12 +93,12 @@ def preprocess_all():
     # Trigger
     preprocess_directory(RAW_TRIGGER, os.path.join(TRIGGER_FEATURES))
     preprocess_directory(AUG_TRIGGER, os.path.join(TRIGGER_FEATURES))
-    preprocess_directory(RAW_COMMAND, os.path.join(NONTRIGGER_FEATURES))
+#    preprocess_directory(RAW_COMMAND, os.path.join(NONTRIGGER_FEATURES))
     preprocess_directory(AUG_COMMAND, os.path.join(NONTRIGGER_FEATURES)) 
     preprocess_directory(NOISE_DIR, os.path.join(NONTRIGGER_FEATURES))   
     # ASR
-    extract_asr_features(RAW_COMMAND, LABEL_COMMAND, os.path.join(ASR_COMMAND_FEATURES, "raw"))
-    extract_asr_features(AUG_COMMAND, LABEL_COMMAND, os.path.join(ASR_COMMAND_FEATURES, "augmented"))
+#    extract_asr_features(RAW_COMMAND, LABEL_COMMAND, os.path.join(ASR_COMMAND_FEATURES, "raw"))
+#    extract_asr_features(AUG_COMMAND, LABEL_COMMAND, os.path.join(ASR_COMMAND_FEATURES, "augmented"))
 
     print("✅ Preprocessing done!")
 

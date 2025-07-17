@@ -14,8 +14,8 @@ from inference.triggerinference import predict_trigger
 from inference.asrinference import transcribe_audio
 
 SAMPLE_RATE = 16000
-VAD_DURATION = 2     # seconds for VAD + Trigger detection
-ASR_DURATION = 5     # seconds for command capture
+VAD_DURATION = 2    # seconds for VAD + Trigger detection
+ASR_DURATION = 5    # seconds for command capture
 CHANNELS = 1
 
 VAD_THRESHOLD = 0.6       # tune this

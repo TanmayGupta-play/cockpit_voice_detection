@@ -55,19 +55,37 @@ class TriggerDataset(Dataset):
     def __init__(self):
         self.data = []
 
-        # Positive: Trigger audio
+         # Positive class: Trigger word audio
         for path in [TRIGGER_TRIGGER]:
             if os.path.exists(path):
                 for file in os.listdir(path):
                     if file.endswith(".npy"):
                         self.data.append((os.path.join(path, file), 1))
 
-        # Negative: Command audio (non-trigger)
+        # Negative class: Non-trigger command audio
         for path in [TRIGGER_NONTRIGGER]:
             if os.path.exists(path):
                 for file in os.listdir(path):
                     if file.endswith(".npy"):
                         self.data.append((os.path.join(path, file), 0))
+
+        # ✅ Shuffle to avoid class ordering bias
+        np.random.shuffle(self.data)
+
+        # ✅ Count class distribution
+        self._print_class_distribution()
+
+    def _print_class_distribution(self):
+        labels = [label for _, label in self.data]
+        pos = sum(1 for l in labels if l == 1)
+        neg = sum(1 for l in labels if l == 0)
+        total = len(labels)
+        print(f"\n📊 Trigger Dataset Loaded:")
+        print(f"   ▶ Total Samples     : {total}")
+        print(f"   ▶ Trigger (1) Count : {pos}")
+        print(f"   ▶ Non-Trigger (0)   : {neg}")
+        if pos > 0:
+            print(f"   ▶ Class Ratio (neg/pos): {neg / pos:.2f}\n")
 
     def __len__(self):
         return len(self.data)
@@ -76,7 +94,7 @@ class TriggerDataset(Dataset):
         feature_path, label = self.data[idx]
         features = np.load(feature_path)
         return features.astype(np.float32), label
-# ----------------------------------
+        
 # Automatic Speech Recognition Dataset
 # ----------------------------------
 class ASRDataset(Dataset):

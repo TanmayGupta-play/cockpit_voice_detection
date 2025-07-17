@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import torch
 import numpy as np
-from models.trigger_word import TriggerWordModel
+from models.trigger_word import TriggerCRNN
 from utils.preprocessing import extract_log_mel
 
 # -------------------------------
@@ -20,7 +20,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # -------------------------------
 # Load Trained Model
 # -------------------------------
-model = TriggerWordModel().to(DEVICE)
+model = TriggerCRNN().to(DEVICE)
 model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 model.eval()
 
